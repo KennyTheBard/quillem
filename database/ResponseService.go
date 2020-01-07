@@ -1,16 +1,24 @@
 package database
 
-import "strings"
+import "math/rand"
 
 // ResponseService is a function that converts database records to a long string
-type ResponseService func([]DatabaseRecord) string
+type ResponseService func([]DatabaseRecord) int
 
-func BasicResponseService(data []DatabaseRecord) string {
-	var str strings.Builder
-
-	for _, record := range data {
-		str.WriteString(record.ToString())
+func BasicResponseService() ResponseService {
+	return func(data []DatabaseRecord) int {
+		return len(data)
 	}
+}
 
-	return str.String()
+func SpuriousVolumesResponseService(x int) ResponseService {
+	return func(data []DatabaseRecord) int {
+		return len(data) + x
+	}
+}
+
+func RandomSpuriousVolumesResponseService(r rand.Rand, n int) ResponseService {
+	return func(data []DatabaseRecord) int {
+		return len(data) + r.Intn(n)
+	}
 }

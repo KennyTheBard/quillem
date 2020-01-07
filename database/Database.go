@@ -15,7 +15,7 @@ type Database struct {
 
 // Query is the main functionality of the Database structure as it uses all its\
 // components to obtain the response of desired format
-func (db Database) Query(col, min, max int) string {
+func (db Database) Query(col, min, max int) int {
 	return db.responseService(db.queryService(db.data, col, min, max))
 }
 

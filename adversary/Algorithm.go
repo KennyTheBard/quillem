@@ -1,4 +1,9 @@
-package main
+package adversary
+
+import (
+	"fmt"
+	"strconv"
+)
 
 type slice []int
 
@@ -21,7 +26,6 @@ func arrayContains(w []int, x int) bool {
 	return false
 }
 
-
 func absInt(x int) int {
 	if x < 0 {
 		return -x
@@ -40,12 +44,12 @@ func buildSolution(g slice) slice {
 }
 
 func mergeSliceOfSlices(a, b []slice) []slice {
-	aux := make([]slice, len(a) + len(b))
+	aux := make([]slice, len(a)+len(b))
 	for i, v := range a {
 		aux[i] = v
 	}
 	for i, v := range b {
-		aux[i + len(a)] = v
+		aux[i+len(a)] = v
 	}
 	return aux
 }
@@ -67,16 +71,18 @@ func sumSlice(s slice) int {
 	return aux
 }
 
-func initialSolution(W []int, b int) []slice {
+func InitialSolution(W []int, b int) []slice {
 	max := arrayMax(W)
 
 	C := make([]int, 1)
 	C[0] = max
 	for _, v := range W {
-		if arrayContains(W, max - v) {
+		if arrayContains(W, max-v) {
 			C = append(C, v)
 		}
 	}
+	fmt.Print("C=")
+	fmt.Println(C)
 
 	G := make([][]slice, b-1)
 
@@ -86,22 +92,26 @@ func initialSolution(W []int, b int) []slice {
 			G[0] = append(G[0], []int{v, max})
 		}
 	}
-	
+	fmt.Print("G[0]=")
+	fmt.Println(G[0])
+
 	for i := 1; i <= b-2; i++ {
 		G[i] = make([]slice, 0)
 		for _, g := range G[i-1] {
 			for _, v := range C {
 				for _, h := range g {
-					if arrayContains(W, absInt(h - v)) {
+					if arrayContains(W, absInt(h-v)) {
 						G[i] = append(G[i], slice(append(g, v)))
 					}
 				}
 			}
-		}  
+		}
+		fmt.Print("G[" + strconv.Itoa(i) + "]=")
+		fmt.Println(G[i])
 	}
 
 	S := make([]slice, 0)
-	for _, g := range G[len(G) - 1] {
+	for _, g := range G[len(G)-1] {
 		s := buildSolution(g)
 		S = append(S, s)
 	}
@@ -132,7 +142,7 @@ func extendRight(Si []slice, W []int, b int) []slice {
 		for _, w := range W {
 			aux := make([]int, b)
 			for k := 0; k < b; k++ {
-				aux[k] = w + sumSlice(s[len(s) - 1 - k:])
+				aux[k] = w + sumSlice(s[len(s)-1-k:])
 			}
 
 			if sliceIncluded(aux, W) {
@@ -143,16 +153,17 @@ func extendRight(Si []slice, W []int, b int) []slice {
 	return Saux
 }
 
-func attack(W []int, b, N int) []slice {
-	Sb := initialSolution(W, b)
-	S := make([][]slice, N - b + 1)
+// Attack implements the algorithm discussed in the article
+func Attack(W []int, b, N int) []slice {
+	Sb := InitialSolution(W, b)
+	S := make([][]slice, N-b+1)
 	S[0] = Sb
 
-	for i := b + 1; i <= N ; i++ {
-		S[i - b] = mergeSliceOfSlices(extendLeft(S[i - b - 1], W, b), extendRight(S[i - b - 1], W, b))
+	for i := b + 1; i <= N; i++ {
+		S[i-b] = mergeSliceOfSlices(extendLeft(S[i-b-1], W, b), extendRight(S[i-b-1], W, b))
 	}
 
-	Sn := S[len(S) - 1]
+	Sn := S[len(S)-1]
 	// Sn = {s | s ∈ Sn ∧ Lb(Sn) = W}
 	return Sn
 }
